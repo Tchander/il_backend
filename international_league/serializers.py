@@ -44,7 +44,7 @@ class RaceSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_results(obj):
         return ResultSerializer(Result.objects.filter(Q(race_id=obj.id), ~Q(race_position='DNS'))
-                                .order_by('-score', 'race_position'), many=True).data
+                                .order_by('race_table_position'), many=True).data
 
     class Meta:
         model = Race
