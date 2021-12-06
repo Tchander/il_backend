@@ -12,12 +12,14 @@ class Team(models.Model):
     total_score_league1 = models.DecimalField('Total score league 1', default=0, max_digits=5, decimal_places=1,
                                                    help_text='Количество очков в кубке конструкторов лиги 1')
     total_score_league2 = models.DecimalField('Total score league 2', default=0, max_digits=5, decimal_places=1,
-                                                   help_text='Количество очков в кубке конструкторов лиги 1')
+                                                   help_text='Количество очков в кубке конструкторов лиги 2')
+    total_score_league3 = models.DecimalField('Total score league 3', default=0, max_digits=5, decimal_places=1,
+                                              help_text='Количество очков в кубке конструкторов лиги 3')
 
 
 class Pilot(models.Model):
     name = models.CharField('Name', max_length=100, default='', help_text='Имя пилота')
-    league = models.PositiveSmallIntegerField('League', default=2, help_text='Номер лиги, в которой выступает пилот')
+    league = models.PositiveSmallIntegerField('League', default=3, help_text='Номер лиги, в которой выступает пилот')
     image = models.ImageField('Image', upload_to='../assets/images/pilots', height_field=None, width_field=None,
                               max_length=200, default=None, null=True, help_text='Аватарка пилота')
     is_main_pilot = models.BooleanField('Is main pilot', default=True, help_text='Действующий или резервный пилот')
@@ -54,6 +56,8 @@ class Race(models.Model):
 
 class Result(models.Model):
     race_position = models.CharField('Race position', max_length=20, default='DNS', help_text='Позиция в гонке')
+    race_table_position = models.PositiveSmallIntegerField('Race table position', default=0,
+                                                           help_text='Позиция в гонке для таблицы')
     qualifying_position = models.CharField('Qualifying position', max_length=20, default='DNQ',
                                            help_text='Позиция в квалификации')
     score = models.DecimalField('Score', default=0, max_digits=5, decimal_places=1,
@@ -131,12 +135,18 @@ def update_pilot(sender, instance, *args, **kwargs):
         if pilot[0].league == 2:
             Team.objects.filter(id=pilot[0].team_id). \
                 update(total_score_league2=F("total_score_league2") + instance.score)
+            if pilot[0].league == 3:
+                Team.objects.filter(id=pilot[0].team_id). \
+                    update(total_score_league3=F("total_score_league3") + instance.score)
         if instance.qualifying_position != 'DNQ':
-            if pilot[0].highest_grid_position is None or\
-                    pilot[0].highest_grid_position > int(instance.qualifying_position):
+            if pilot[0].highest_grid_position is None:
+                pilot.update(highest_grid_position=int(instance.qualifying_position))
+            elif pilot[0].highest_grid_position > int(instance.qualifying_position):
                 pilot.update(highest_grid_position=int(instance.qualifying_position))
         if instance.race_position != 'DNF' and instance.race_position != 'DNS':
-            if pilot[0].best_race_finish is None or pilot[0].best_race_finish > int(instance.race_position):
+            if pilot[0].best_race_finish is None:
+                pilot.update(best_race_finish=int(instance.race_position))
+            elif pilot[0].best_race_finish > int(instance.race_position):
                 pilot.update(best_race_finish=int(instance.race_position))
         if instance.race_position == 'DNF':
             pilot.update(do_not_finish=F("do_not_finish") + 1)
@@ -164,6 +174,8 @@ def update_pilot(sender, instance, *args, **kwargs):
                             pilot.update(qualifying_victories_over_teammate=F("qualifying_victories_over_teammate") + 1)
     elif pilot[0].league == 2 and instance.league == 1 and instance.is_result_of_reserve_pilot:
         Team.objects.filter(id=instance.team_id).update(total_score_league1=F("total_score_league1") + instance.score)
+    elif pilot[0].league == 3 and instance.league == 2 and instance.is_result_of_reserve_pilot:
+        Team.objects.filter(id=instance.team_id).update(total_score_league2=F("total_score_league2") + instance.score)
     elif pilot[0].league == instance.league and instance.is_result_of_reserve_pilot:
         Team.objects.filter(id=instance.team_id).\
             update(total_score_league2=F("total_score_league2") + (instance.score / 2))
@@ -178,13 +190,20 @@ def update_pilot(sender, instance, *args, **kwargs):
         if pilot[0].league == 1:
             Team.objects.filter(id=instance.team_id). \
                 update(total_score_league1=F("total_score_league1") + instance.score)
-        else:
+        elif pilot[0].league == 2:
             Team.objects.filter(id=instance.team_id). \
                 update(total_score_league2=F("total_score_league2") + instance.score)
+        else:
+            Team.objects.filter(id=instance.team_id). \
+                update(total_score_league3=F("total_score_league3") + instance.score)
         pilot.update(total_score=F("total_score") + instance.score)
         pilot.update(number_of_races_completed=F("number_of_races_completed") + 1)
         pilot.update(position_in_the_last_race=instance.race_position)
         pilot.update(position_in_the_last_qualifying=instance.qualifying_position)
     else:
-        Team.objects.filter(id=instance.team_id). \
-            update(total_score_league2=F("total_score_league2") + instance.score)
+        if pilot[0].league == 2:
+            Team.objects.filter(id=instance.team_id). \
+                update(total_score_league2=F("total_score_league2") + instance.score)
+        else:
+            Team.objects.filter(id=instance.team_id). \
+                update(total_score_league3=F("total_score_league3") + instance.score)
