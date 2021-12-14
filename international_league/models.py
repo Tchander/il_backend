@@ -135,9 +135,9 @@ def update_pilot(sender, instance, *args, **kwargs):
         if pilot[0].league == 2:
             Team.objects.filter(id=pilot[0].team_id). \
                 update(total_score_league2=F("total_score_league2") + instance.score)
-            if pilot[0].league == 3:
-                Team.objects.filter(id=pilot[0].team_id). \
-                    update(total_score_league3=F("total_score_league3") + instance.score)
+        if pilot[0].league == 3:
+            Team.objects.filter(id=pilot[0].team_id). \
+                update(total_score_league3=F("total_score_league3") + instance.score)
         if instance.qualifying_position != 'DNQ':
             if pilot[0].highest_grid_position is None:
                 pilot.update(highest_grid_position=int(instance.qualifying_position))
@@ -172,13 +172,16 @@ def update_pilot(sender, instance, *args, **kwargs):
                                             F("qualifying_victories_over_teammate") + 1)
                         else:
                             pilot.update(qualifying_victories_over_teammate=F("qualifying_victories_over_teammate") + 1)
+    elif pilot[0].league == 3 and instance.league == 2 and not pilot[0].is_main_pilot:
+        Team.objects.filter(id=instance.team_id).update(total_score_league2=F("total_score_league2") + instance.score)
     elif pilot[0].league == 2 and instance.league == 1 and instance.is_result_of_reserve_pilot:
         Team.objects.filter(id=instance.team_id).update(total_score_league1=F("total_score_league1") + instance.score)
     elif pilot[0].league == 3 and instance.league == 2 and instance.is_result_of_reserve_pilot:
         Team.objects.filter(id=instance.team_id).update(total_score_league2=F("total_score_league2") + instance.score)
     elif pilot[0].league == instance.league and instance.is_result_of_reserve_pilot:
-        Team.objects.filter(id=instance.team_id).\
-            update(total_score_league2=F("total_score_league2") + (instance.score / 2))
+        if instance.league == 3:
+            Team.objects.filter(id=instance.team_id).\
+                update(total_score_league3=F("total_score_league3") + (instance.score / 2))
         pilot.update(total_score=F("total_score") + instance.score)
         pilot.update(number_of_races_completed=F("number_of_races_completed") + 1)
         pilot.update(position_in_the_last_race=instance.race_position)
