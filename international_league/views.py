@@ -23,6 +23,14 @@ class PilotListView(APIView):
         return Response(instances)
 
 
+class AllPilotListView(APIView):
+    @staticmethod
+    def get(request):
+        pilots = Pilot.objects.all().order_by('league')
+        instances = PilotSerializer(pilots, many=True).data
+        return Response(instances)
+
+
 class TeamDetailView(APIView):
     @staticmethod
     def get(request, url_name):

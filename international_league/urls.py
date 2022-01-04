@@ -7,5 +7,6 @@ urlpatterns = [
     path('races/<str:country>/', RaceDetailView.as_view()),
     path('teams/', TeamListView.as_view()),
     path('pilots/', PilotListView.as_view()),
+    path('all-pilots/', AllPilotListView.as_view()),
     path('races/', RaceListView.as_view()),
 ]
