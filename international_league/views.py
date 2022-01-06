@@ -1,4 +1,5 @@
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 
@@ -53,3 +54,10 @@ class RaceDetailView(APIView):
         race = Race.objects.get(country=country)
         instances = RaceSerializer(race).data
         return Response(instances)
+
+
+class ResultListView(APIView):
+    @staticmethod
+    def post(request: Request):
+        results = request.data.get('results', None)
+        return Response(results)

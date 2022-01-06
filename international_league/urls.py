@@ -9,4 +9,5 @@ urlpatterns = [
     path('pilots/', PilotListView.as_view()),
     path('all-pilots/', AllPilotListView.as_view()),
     path('races/', RaceListView.as_view()),
+    path('results/', ResultListView.as_view()),
 ]
