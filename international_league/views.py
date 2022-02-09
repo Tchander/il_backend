@@ -18,7 +18,7 @@ class TeamListView(APIView):
 class PilotListView(APIView):
     @staticmethod
     def get(request):
-        pilots = Pilot.objects.filter(is_main_pilot=True).\
+        pilots = Pilot.objects.filter(is_main_pilot=True). \
             order_by('league', '-total_score', 'best_race_finish', 'highest_grid_position')
         instances = PilotSerializer(pilots, many=True).data
         return Response(instances)
@@ -61,10 +61,12 @@ class ResultListView(APIView):
     def post(request: Request):
         results = request.data.get('results', None)
         for result in results:
-            Result.objects.create(league=result.league, race_id=result.race_id, pilot_id=result.pilot_id,
-                                  team_id=result.team_id, race_position=result.race_position,
-                                  race_table_position=result.race_table_position,
-                                  qualifying_position=result.qualifying_position, best_lap=result.best_lap,
-                                  is_race_best_lap=result.is_race_best_lap,
-                                  is_result_of_reserve_pilot=result.is_result_of_reserve_pilot)
+            pass
+            if result['pilot_id']:
+                Result.objects.create(league=result['league'], race_id=['result.race_id'], pilot_id=result['pilot_id'],
+                                      team_id=result['team_id'], race_position=result['race_position'],
+                                      race_table_position=result['race_table_position'],
+                                      qualifying_position=result['qualifying_position'], best_lap=result['best_lap'],
+                                      is_race_best_lap=result['is_race_best_lap'],
+                                      is_result_of_reserve_pilot=result['is_result_of_reserve_pilot'])
         return Response(200)
