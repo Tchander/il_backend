@@ -63,7 +63,7 @@ class ResultListView(APIView):
         for result in results:
             pass
             if result['pilot_id']:
-                Result.objects.create(league=result['league'], race_id=['result.race_id'], pilot_id=result['pilot_id'],
+                Result.objects.create(league=result['league'], race_id=result['race_id'], pilot_id=result['pilot_id'],
                                       team_id=result['team_id'], race_position=result['race_position'],
                                       race_table_position=result['race_table_position'],
                                       qualifying_position=result['qualifying_position'], best_lap=result['best_lap'],
