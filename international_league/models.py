@@ -174,6 +174,8 @@ def update_pilot(sender, instance, *args, **kwargs):
                             pilot.update(qualifying_victories_over_teammate=F("qualifying_victories_over_teammate") + 1)
     elif pilot[0].league == 3 and instance.league == 2 and not pilot[0].is_main_pilot:
         Team.objects.filter(id=instance.team_id).update(total_score_league2=F("total_score_league2") + instance.score)
+    elif pilot[0].league == 3 and instance.league == 1:
+        Team.objects.filter(id=instance.team_id).update(total_score_league2=F("total_score_league1") + instance.score)
     elif pilot[0].league == 2 and instance.league == 1 and instance.is_result_of_reserve_pilot:
         Team.objects.filter(id=instance.team_id).update(total_score_league1=F("total_score_league1") + instance.score)
     elif pilot[0].league == 3 and instance.league == 2 and instance.is_result_of_reserve_pilot:
